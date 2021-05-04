@@ -1,5 +1,7 @@
 # Housing Data Exploration
 
+## Completed: 12/12/2020
+
 ## Project Objective
 Our team explored the data set "house_sales" to discover trends in housing prices in the Seattle area related to different features of the homes.
 
