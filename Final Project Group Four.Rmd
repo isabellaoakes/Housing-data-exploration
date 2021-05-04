@@ -1,0 +1,168 @@
+---
+title: "Final Project-Team Four"
+author: "Isabella Oakes, Jeffrey Burnett, and Chris Robinson"
+date: "12/12/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(ggplot2)
+house <- read.csv('C:/Users/Ladybug/Desktop/house_sales.csv')
+print(summary(house))
+```
+```{r}
+house_subset <- subset(house, select =-c(1, 2, 6, 7, 16, 18, 19), bedrooms < 30)
+house_subset$bedrooms[is.na(house_subset$bedrooms)] <- 3
+house_subset$bathrooms[is.na(house_subset$bathrooms)] <- 2.25
+```
+
+Before looking at correlation, we removed the housing ID, date, sqft_living, sqft_lot, lat, and long. The housing ID would not be useful for correlation, so it was removed. The date field was within a year, so there was not significant change in housing prices within the year. The sqft_living and sqft_lot both have missing values and we chose to use sqft_living15 and sqft_lot15 over those columns, as they had no missing values. We also removed the entry for 33 bedrooms, as it was an outlier. We also replaced NA values for bedrooms with the median number of bedrooms (3) and NA values for bathrooms with the median as well (2.25). We chose to not omit them as there were over 1,000 NA values for each. We chose to remove lat and long as we weren't going to be using them to do mapping. We also removed yr_renovated, as it did not have significant information and most homes were not renovated.
+
+The values we are working with are numerical, with zipcode being a nominal variable and view, condition, and grade being categorical variables. 
+
+```{r}
+print(summary(house_subset))
+```
+
+
+
+```{r}
+boxplot(house_subset$bedrooms, house_subset$bathrooms, house_subset$floors,
+        main = "House features",
+        xlab = "Features",
+        ylab = "Amount",
+        names = c("Bedrooms", "Bathrooms", "Floors"))
+```
+
+Looking at the average housing features, the median number of bedrooms is 3, with a range of 0-10. Most homes have between 3-4 bedrooms. The median number of bathrooms is 2.25, with most homes having between 1.75-2.5 bathrooms. The median number of floors was 1.5, showing a positive skew in number of floors so a higher amount of homes had just one floor. 
+
+```{r}
+boxplot(house_subset$sqft_living15, house_subset$sqft_above, house_subset$sqft_basement,
+        main = "House size",
+        xlab = "Area of home",
+        ylab = "Size (sq ft)",
+        names = c("Total Living Square Feet", "Square Feet Main", "Square Feet of Basement"))
+```
+
+The median for total living square feet is 1840sq ft, which is similar to the square feet of the main median of 1460. All three of the housing square feet measures show positive skew, with many outliers for larger than average homes. The basement square feet has a median of 0, which shows that less than half of the homes have a basement. 
+
+```{r}
+cor(house_subset)
+```
+
+The major dependent variable when looking at the data would be the housing price. Different features influence how much a house will sell for. One of the main independent variables is the square footage of the home. The scatterplot shows the price of the home vs. the number of square feet, with the view of the home shown by the color of the points.
+
+```{r}
+ggplot(house_subset, aes(x=sqft_living15, y=price, color=view))+
+  geom_point()+
+  geom_smooth()+
+  labs(title="Price vs. Living Sq Ft", x="Living Space (Sq Ft)", y="Price ($)")+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+Another relevant independent variable is the number of bathrooms. While number of bedrooms also has correlation to the price, bathrooms has a higher correlation. The scatterplot shows the number of price of the home vs. number of bathrooms, with the number of bedrooms shown in by color of the points. 
+
+```{r}
+ggplot(house_subset, aes(x=bathrooms, y=price, color= bedrooms))+
+  geom_point()+
+  geom_smooth()+
+  labs(title="Price vs. Bathrooms", x="Number of Bathrooms", y="Price ($)")+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+The grade of the home is an important factor when looking at price, with the higher the grade the higher the price. The scatterplot shows the price vs. the grade of the home, colored by the view that the home has.
+
+```{r}
+ggplot(house_subset, aes(x=grade, y=price, color=view))+
+  geom_point()+
+  geom_smooth()+
+  labs(title="Price vs. Grade", x="Grade (%)", y="Price ($)")+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+
+```{r}
+linearMod <- lm(price ~ sqft_living15, data=house_subset)
+print(linearMod)
+```
+
+The linear model for price vs. square feet would be f(x)=(-85466)+315x where f(x) is the price and x is the square footage of the home.
+
+```{r}
+ggplot(house_subset, aes(x=sqft_living15, y=price, color=view))+
+  geom_point()+
+  labs(title="Price vs. Living Sq Ft", x="Living Space (Sq Ft)", y="Price ($)")+
+  geom_abline(aes(intercept=-85466, slope=315))+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+
+```{r}
+cor.test(house_subset$sqft_living15, house_subset$price, method="pearson")
+summary(linearMod)
+```
+
+The linear regression model for price vs. living space has an adjusted R-squared value of 0.3442, which is not a high r-squared value, meaning that much of the variation is not explained by the model. The p-value is very low, which shows that there is significant correlation, so the square footage does have an effect on price.
+
+```{r}
+linearMod2 <- lm(price ~ bathrooms, data=house_subset)
+print(linearMod2)
+summary(linearMod2)
+```
+
+The linear model for price vs. number of bathrooms would be f(x)=3551+253236x where f(x) is the price and x is the number of bathrooms in the home. The adjusted R-squared value is 0.2661, which is not a very high value, but the p-value shows that number of bathrooms does have a statistically significant correlation to the price.
+
+```{r}
+ggplot(house_subset, aes(x=bathrooms, y=price, color= bedrooms))+
+  geom_point()+
+  geom_abline(aes(intercept=3551, slope=253236))+
+  labs(title="Price vs. Bathrooms", x="Number of Bathrooms", y="Price ($)")+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+```{r}
+linearMod3 <- lm(price ~ grade, data=house_subset)
+print(linearMod3)
+summary(linearMod3)
+```
+
+The linear model for price vs. grade of the lot is f(x)=(-1062438)+209321x where f(x) is the price and x is the grade of the home. The adjusted R-squared value is 0.447, which is the highest R-squared value out of the variables, with a similar p-value compared to the other variables, showing that the grade of the home does have a statistically significant correlation to the price.
+
+```{r}
+ggplot(house_subset, aes(x=grade, y=price, color=view))+
+  geom_point()+
+  labs(title="Price vs. Grade", x="Grade (%)", y="Price ($)")+
+  geom_abline(aes(intercept=-1062438, slope=209321))+
+  scale_x_continuous(labels=scales::number)+
+  scale_y_continuous(labels=scales::number)+
+  scale_colour_gradient(low = "#39B4B4", high="#144D4D")
+```
+
+
+```{r}
+fit <- lm(price ~ sqft_living15 + bathrooms + grade, data=house_subset)
+summary(fit)
+```
+
+Taking all three variables, the multiple regression equation for home price is f(x)=(-875000)+108.6x_1+53130x_2+141900x_3 where f(x) is price of the home, x_1 is the square feet of the home, x_2 is the number of bathrooms, and x_3 is the grade of the home. The adjusted R-square value is 0.4776, which is higher than the individual linear regression models, showing that it is a better explanation for the variance. 
+
+Using ArcGIS, we plotted the homes based on location colored by sales price, which shows that the more expensive homes tend to be clustered around water, which likely contributes to the view rating. The grade of the home is very important when determining home price, as homes with better construction being more expensive as the features are more costly.
+
+```{r pressure, echo=FALSE, fig.cap="Price based on Location", out.width = '100%'}
+knitr::include_graphics("C:/users/ladybug/desktop/Housing_by_Price.jpg")
+```
+
+When determining the sales price of a home, there are many factors that contribute to varying degrees. Location is a factor, and contributes to other variables such as view, whether a home is on a waterfront. The grade of the home is important because the materials that are used to build the home will cause a home to be a higher or lower price. The size of the home is also an important factor. Bathrooms can increase a home price, and has a higher correlation to price than bedrooms. All of these factors and more are taken into account when pricing a home, and are important considerations in buying or selling property.
+
