@@ -21,6 +21,8 @@ Our team explored the data set "house_sales" to discover trends in housing price
 ## Project Description
 We explored the data to uncover related variables to determine the variables with the most impact on sales price using data visualization techniques. Using these variables, we generated a linear regression model.
 
+## Visual of House Sales by Price
+![image](https://user-images.githubusercontent.com/74040889/131297797-bcb4b6a3-6eb5-49fc-a8be-a4b4a69e6a2b.png)
 
 ## Presentations and projects
 * [R code in PDF form](https://github.com/isabellaoakes/Housing-data-exploration/blob/main/Final%20Project-Team%20Four.pdf)
